@@ -1,52 +1,99 @@
 var express = require('express')
-var mongoskin = require('mongoskin')
-
 var app = express()
+app.use(express.json())
 
-app.use(express.bodyParser())
-
-var db = mongoskin.db('localhost:27017/test', {safe:true});
-
-app.param('collectionName', function(req, res, next, collectionName){
-  req.collection = db.collection(collectionName)
-  return next()
+var elasticsearch = require('elasticsearch')
+var db = new elasticsearch.Client({
+  host: 'localhost:9200',
+  log: 'trace'
 })
+
+var shortId = require('shortid')
+shortId.seed(342)
 
 app.get('/', function(req, res) {
-  res.send('please select a collection, e.g., /collections/messages')
-})
 
-app.get('/collections/:collectionName', function(req, res) {
-  req.collection.find({},{limit:10, sort: [['_id',-1]]}).toArray(function(e, results){
-    if (e) return next(e)
-    res.send(results)
+  db.ping({
+    requestTimeout: 1000,
+    hello: "elasticsearch!"
+  }, function (error) {
+    if (error) {
+      res.send('elasticsearch cluster is down!')
+    } else {
+      res.send('All is well')
+    }
   })
 })
 
-app.post('/collections/:collectionName', function(req, res) {
-  req.collection.insert(req.body, {}, function(e, results){
-    if (e) return next(e)
-    res.send(results)
+app.get('/test/posting', function(req, res) {
+  db.search(
+  {
+    index: 'posting',
+    size: '30'
+  }).then (function (result) { res.send(mapResults(result.body.hits.hits))}, 
+
+  function(error){sendError(res,error)})
+})
+
+app.post('/test/posting', function(req, res) {
+  
+ db.create({
+   index: 'posting',
+   type: 'posting',
+   refresh: 'true',
+   id: shortId.generate(),
+   body: req.body
+ }, function(error, result){
+   if(error) sendError(res, error)
+   res.send({id : result._id})
+ })
+})
+
+app.get('/test/posting/:id', function(req, res) {  
+  db.get({
+  index: 'posting',
+  type: 'posting',
+  id: req.params.id
+  }, function (error, result) {
+     if(error) sendError(res, error)
+     res.send(result._source)
   })
 })
 
-app.get('/collections/:collectionName/:id', function(req, res) {
-  req.collection.findOne({_id: req.collection.id(req.params.id)}, function(e, result){
-    if (e) return next(e)
+app.put('/test/posting/:id', function(req, res) {
+  
+  db.update({
+    index: 'posting',
+    type: 'posting',
+    id:   req.params.id,
+    body:  { doc : req.body}
+  }, function (error, result) {
+    if(error) sendError(res, error)
+     res.send({id: result._id, version: result._version})
+  })
+
+})
+
+app.del('/test/posting/:id', function(req, res) {
+  db.delete({
+  index: 'posting',
+  type: 'posting',
+  id: req.params.id
+  }, function (error, result) {
+    if(error) sendError(res, error)
     res.send(result)
   })
 })
-app.put('/collections/:collectionName/:id', function(req, res) {
-  req.collection.update({_id: req.collection.id(req.params.id)}, {$set:req.body}, {safe:true, multi:false}, function(e, result){
-    if (e) return next(e)
-    res.send((result===1)?{msg:'success'}:{msg:'error'})
-  })
-})
-app.del('/collections/:collectionName/:id', function(req, res) {
-  req.collection.remove({_id: req.collection.id(req.params.id)}, function(e, result){
-    if (e) return next(e)
-    res.send((result===1)?{msg:'success'}:{msg:'error'})
-  })
-})
+
+function sendError(response, error)
+{
+  response.status(500);
+  response.send(error.message);
+}
+
+ function mapResults(list)
+ {
+   return list.map(function (item){ return {id : item._id, posting : item._source }})
+ }
 
 app.listen(3000)
