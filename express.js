@@ -3,10 +3,9 @@ var app = express()
 app.use(express.json())
 
 var elasticsearch = require('elasticsearch')
-var db = new elasticsearch.Client({
-  host: 'localhost:9200',
-  log: 'trace'
-})
+
+var esHost = process.env.BONSAI_URL || 'localhost:9200'
+var db = new elasticsearch.Client({host: esHost ,log: 'info'})
 
 var shortId = require('shortid')
 shortId.seed(342)
