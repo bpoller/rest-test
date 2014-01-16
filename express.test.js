@@ -2,7 +2,7 @@ var superagent = require('superagent')
 var expect = require('expect.js')
 var localhost = 'http://localhost:3000'
 var remotehost = 'http://secret-journey-1239.herokuapp.com'
-var host = localhost
+var host = remotehost
 
 
 describe('express rest api server', function(){
