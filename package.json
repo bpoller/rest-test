@@ -24,6 +24,9 @@
     "elasticsearch" : "1.0.3",
     "shortid" : "2.0.0"
   },
+  "engines": {
+    "node": "0.10.x"
+  },
   "licenses": [
     {
       "type": "MIT",
