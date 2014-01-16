@@ -96,4 +96,8 @@ function sendError(response, error)
    return list.map(function (item){ return {id : item._id, posting : item._source }})
  }
 
-app.listen(3000)
+
+var port = process.env.PORT || 3000;
+app.listen(port, function() {
+  console.log("Listening on " + port);
+});
