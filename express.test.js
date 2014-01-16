@@ -1,11 +1,15 @@
 var superagent = require('superagent')
 var expect = require('expect.js')
+var localhost = 'http://localhost:3000'
+var remotehost = 'http://secret-journey-1239.herokuapp.com'
+var host = localhost
+
 
 describe('express rest api server', function(){
   var id
 
-  it('post object', function(done){
-    superagent.post('http://localhost:3000/test/posting')
+  it('posts an object', function(done){
+    superagent.post(host+'/test/posting')
       .send({ "name": "John"
         , "email": "john@rpjs.co"
       })
@@ -18,7 +22,7 @@ describe('express rest api server', function(){
   })
 
   it('retrieves an object', function(done){
-    superagent.get('http://localhost:3000/test/posting/'+id)
+    superagent.get(host+'/test/posting/'+id)
       .end(function(e, res){
         expect(e).to.eql(null)
         expect(typeof res.body).to.eql('object')
@@ -28,7 +32,7 @@ describe('express rest api server', function(){
   })
 
   it('retrieves a collection', function(done){
-    superagent.get('http://localhost:3000/test/posting')
+    superagent.get(host+'/test/posting')
       .end(function(e, res){
         expect(e).to.eql(null)
         expect(res.body.length).to.be.above(0)
@@ -38,7 +42,7 @@ describe('express rest api server', function(){
   })
 
   it('updates an object', function(done){
-    superagent.put('http://localhost:3000/test/posting/'+id)
+    superagent.put(host+'/test/posting/'+id)
       .send({name: 'Peter'
         , email: 'peter@yahoo.com'})
       .end(function(e, res){
@@ -50,7 +54,7 @@ describe('express rest api server', function(){
   })
 
   it('checks an updated object', function(done){
-    superagent.get('http://localhost:3000/test/posting/'+id)
+    superagent.get(host+'/test/posting/'+id)
       .end(function(e, res){
         expect(e).to.eql(null) 
         expect(typeof res.body).to.eql('object')
@@ -60,7 +64,7 @@ describe('express rest api server', function(){
   })    
 
   it('removes an object', function(done){
-    superagent.del('http://localhost:3000/test/posting/'+id)
+    superagent.del(host+'/test/posting/'+id)
       .end(function(e, res){
         expect(e).to.eql(null)
         expect(typeof res.body).to.eql('object')

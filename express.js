@@ -1,12 +1,16 @@
+//prepare express web server
 var express = require('express')
 var app = express()
 app.use(express.json())
 
-var elasticsearch = require('elasticsearch')
 
+//prepare elastic search back-end
+var elasticsearch = require('elasticsearch')
 var esHost = process.env.BONSAI_URL || 'localhost:9200'
 var db = new elasticsearch.Client({host: esHost ,log: 'info'})
 
+
+//prepare id generator
 var shortId = require('shortid')
 shortId.seed(342)
 
